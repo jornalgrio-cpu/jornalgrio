@@ -1,6 +1,14 @@
 
--- Enable Row Level Security (RLS)
--- Create Articles Table
+-- LIMPEZA (OPCIONAL): Descomente as linhas abaixo se desejar recriar as tabelas
+-- DROP TABLE IF EXISTS team_members;
+-- DROP TABLE IF EXISTS partners;
+-- DROP TABLE IF EXISTS recadinhos;
+-- DROP TABLE IF EXISTS agenda;
+-- DROP TABLE IF EXISTS newsletter;
+-- DROP TABLE IF EXISTS comments;
+-- DROP TABLE IF EXISTS articles;
+
+-- 1. TABELA DE ARTIGOS (Notícias, Entrevistas, Editoriais)
 CREATE TABLE IF NOT EXISTS articles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -8,23 +16,23 @@ CREATE TABLE IF NOT EXISTS articles (
   content TEXT NOT NULL,
   author_name TEXT NOT NULL,
   author_role TEXT,
-  section TEXT NOT NULL,
+  section TEXT NOT NULL, -- 'Editorial', 'Aconteceu na Escola', 'Entrevistas', etc.
   image_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   is_published BOOLEAN DEFAULT true
 );
 
--- Create Comments Table
+-- 2. TABELA DE COMENTÁRIOS (Interação nas matérias)
 CREATE TABLE IF NOT EXISTS comments (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   post_id UUID REFERENCES articles(id) ON DELETE CASCADE,
   author_name TEXT NOT NULL,
   content TEXT NOT NULL,
-  is_approved BOOLEAN DEFAULT false,
+  is_approved BOOLEAN DEFAULT false, -- Requer moderação do editor
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create Newsletter Table
+-- 3. TABELA DE NEWSLETTER (Emails e WhatsApp para notificações)
 CREATE TABLE IF NOT EXISTS newsletter (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email TEXT UNIQUE,
@@ -32,7 +40,7 @@ CREATE TABLE IF NOT EXISTS newsletter (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create Agenda Table
+-- 4. TABELA DE AGENDA (Eventos e culminâncias)
 CREATE TABLE IF NOT EXISTS agenda (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   event_title TEXT NOT NULL,
@@ -41,7 +49,7 @@ CREATE TABLE IF NOT EXISTS agenda (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create Messages Table (Recadinhos)
+-- 5. TABELA DE RECADINHOS (Mural de recados dos alunos)
 CREATE TABLE IF NOT EXISTS recadinhos (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   sender TEXT NOT NULL,
@@ -49,23 +57,65 @@ CREATE TABLE IF NOT EXISTS recadinhos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable RLS for all tables
+-- 6. TABELA DE PARCEIROS (Patrocínios da iniciativa privada)
+CREATE TABLE IF NOT EXISTS partners (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  logo_url TEXT,
+  website_url TEXT,
+  tier TEXT DEFAULT 'Parceiro', -- 'Ouro', 'Prata', 'Bronze'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. TABELA DE EQUIPE (Membros do jornal)
+CREATE TABLE IF NOT EXISTS team_members (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL, -- 'Editor', 'Repórter', 'Fotógrafo', etc.
+  bio TEXT,
+  image_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ==========================================
+-- ATIVAÇÃO DE ROW LEVEL SECURITY (RLS)
+-- ==========================================
+
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE newsletter ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agenda ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recadinhos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
 
--- Simple Public Access Policy (Allow anyone to read)
-CREATE POLICY "Public read access for articles" ON articles FOR SELECT USING (true);
-CREATE POLICY "Public read access for comments" ON comments FOR SELECT USING (is_approved = true);
-CREATE POLICY "Public read access for agenda" ON agenda FOR SELECT USING (true);
-CREATE POLICY "Public read access for recadinhos" ON recadinhos FOR SELECT USING (true);
+-- ==========================================
+-- POLÍTICAS DE ACESSO (POLICIES)
+-- ==========================================
 
--- Insert policy for public actions
-CREATE POLICY "Allow public insert for newsletter" ON newsletter FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert for recadinhos" ON recadinhos FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert for comments" ON comments FOR INSERT WITH CHECK (true);
+-- Artigos: Leitura pública, Escrita aberta para simplificação (Em produção, restringir a admin)
+CREATE POLICY "Permitir leitura pública de artigos" ON articles FOR SELECT USING (is_published = true);
+CREATE POLICY "Permitir gestão total de artigos" ON articles FOR ALL USING (true);
 
--- Administrative Policies (For demo purposes, open for authenticated/all while in dev)
-CREATE POLICY "Allow management for everyone" ON articles FOR ALL USING (true) WITH CHECK (true);
+-- Comentários: Leitura apenas de aprovados, inserção livre
+CREATE POLICY "Permitir leitura de comentários aprovados" ON comments FOR SELECT USING (is_approved = true);
+CREATE POLICY "Permitir inserção pública de comentários" ON comments FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir moderação de comentários" ON comments FOR ALL USING (true);
+
+-- Newsletter: Inserção livre, leitura para admin
+CREATE POLICY "Permitir inscrição na newsletter" ON newsletter FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir leitura de inscritos" ON newsletter FOR SELECT USING (true);
+
+-- Agenda: Leitura pública
+CREATE POLICY "Permitir leitura pública da agenda" ON agenda FOR SELECT USING (true);
+CREATE POLICY "Permitir gestão da agenda" ON agenda FOR ALL USING (true);
+
+-- Recadinhos: Leitura e inserção livre
+CREATE POLICY "Permitir leitura pública de recadinhos" ON recadinhos FOR SELECT USING (true);
+CREATE POLICY "Permitir inserção de recadinhos" ON recadinhos FOR INSERT WITH CHECK (true);
+
+-- Parceiros e Equipe: Leitura pública
+CREATE POLICY "Permitir leitura pública de parceiros" ON partners FOR SELECT USING (true);
+CREATE POLICY "Permitir gestão de parceiros" ON partners FOR ALL USING (true);
+CREATE POLICY "Permitir leitura pública da equipe" ON team_members FOR SELECT USING (true);
+CREATE POLICY "Permitir gestão da equipe" ON team_members FOR ALL USING (true);

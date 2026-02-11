@@ -45,8 +45,18 @@ export interface Recadinho {
   created_at: string;
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  logo_url?: string;
+  website_url?: string;
+  tier: string;
+}
+
 export interface TeamMember {
+  id: string;
   name: string;
   role: string;
-  description?: string;
+  bio?: string;
+  image_url?: string;
 }
