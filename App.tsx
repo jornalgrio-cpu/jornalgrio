@@ -21,13 +21,10 @@ const Header = ({ session }: { session: any }) => (
           <div className="flex flex-col items-center flex-1">
             <Link to="/" className="mb-4">
               <img 
-                src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/vozes-logo.png" 
+                src="logo.png" 
                 alt="Logo Vozes da Ancestralidade" 
-                className="h-20 md:h-28 w-auto grayscale hover:grayscale-0 transition-all duration-700"
-                onError={(e) => {
-                  // Fallback para arquivo local caso a URL falhe
-                  (e.target as HTMLImageElement).src = '/logo.png';
-                }}
+                className="h-28 md:h-40 w-auto grayscale hover:grayscale-0 transition-all duration-700"
+                style={{ objectFit: 'contain' }}
               />
             </Link>
             <Link to="/" className="text-center group">
@@ -75,10 +72,10 @@ const Footer = () => (
     <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
       <div className="flex flex-col items-start gap-4">
         <img 
-          src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/vozes-logo.png" 
+          src="logo.png" 
           alt="Selo do Jornal" 
-          className="h-20 w-auto opacity-80"
-          onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+          className="h-24 w-auto opacity-90 grayscale brightness-200"
+          style={{ objectFit: 'contain' }}
         />
         <div>
           <h3 className="font-display text-2xl font-bold mb-2">Vozes da Ancestralidade</h3>
