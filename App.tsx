@@ -48,7 +48,7 @@ const Header = ({ session }: { session: any }) => (
         </div>
         
         <div className="mt-2 bg-afro-gold text-afro-brown font-black px-4 py-1 uppercase text-xs tracking-widest shadow-sm rounded-sm">
-          Tema Central: O Poder Afro
+          Poder Afro
         </div>
       </div>
     </div>
@@ -76,9 +76,8 @@ const Footer = () => (
       <div>
         <h4 className="font-bold uppercase tracking-widest text-afro-gold mb-4">Expediente</h4>
         <p className="text-xs text-paper/70 leading-loose">
-          Equipe Vozes da Ancestralidade: 10 membros ativos<br/>
-          Orientação: Professores de Linguagens e Ciências Humanas<br/>
-          Local: Palmas - Tocantins
+          Horário: das 07:00 h às 23:00 h<br/>
+          E-mail: <a href="mailto:jornalgrio@gmail.com" className="hover:text-afro-gold transition-colors underline">jornalgrio@gmail.com</a>
         </p>
       </div>
     </div>
