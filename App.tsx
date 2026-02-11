@@ -11,20 +11,35 @@ import { Youtube, Home as HomeIcon, Settings, User as UserIcon } from 'lucide-re
 
 const Header = ({ session }: { session: any }) => (
   <header className="border-b-4 border-afro-brown bg-paper sticky top-0 z-50">
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-4 md:py-6">
       <div className="flex flex-col items-center">
-        <div className="flex justify-between w-full mb-4 items-center">
+        <div className="flex justify-between w-full mb-2 items-center">
           <div className="text-xs uppercase tracking-widest font-bold text-afro-brown hidden md:block">
             Tocantins, {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
-          <Link to="/" className="text-center group">
-            <h1 className="font-display text-4xl md:text-6xl font-black text-afro-brown hover:text-afro-terracotta transition-colors uppercase tracking-tighter">
-              Vozes da Ancestralidade
-            </h1>
-            <p className="font-display italic text-lg text-afro-terracotta mt-1">
-              "A escuta que educa, a palavra que liberta"
-            </p>
-          </Link>
+          
+          <div className="flex flex-col items-center flex-1">
+            <Link to="/" className="mb-4">
+              <img 
+                src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/vozes-logo.png" 
+                alt="Logo Vozes da Ancestralidade" 
+                className="h-20 md:h-28 w-auto grayscale hover:grayscale-0 transition-all duration-700"
+                onError={(e) => {
+                  // Fallback para arquivo local caso a URL falhe
+                  (e.target as HTMLImageElement).src = '/logo.png';
+                }}
+              />
+            </Link>
+            <Link to="/" className="text-center group">
+              <h1 className="font-display text-4xl md:text-6xl font-black text-afro-brown hover:text-afro-terracotta transition-colors uppercase tracking-tighter">
+                Vozes da Ancestralidade
+              </h1>
+              <p className="font-display italic text-lg text-afro-terracotta mt-1">
+                "A escuta que educa, a palavra que liberta"
+              </p>
+            </Link>
+          </div>
+
           <div className="flex items-center gap-4">
             <a href="https://www.youtube.com/channel/UCXTMxk4z8UHu4Ys6sWfTGPQ" target="_blank" rel="noopener noreferrer" className="text-red-700 hover:scale-110 transition-transform">
               <Youtube size={24} />
@@ -58,12 +73,20 @@ const Header = ({ session }: { session: any }) => (
 const Footer = () => (
   <footer className="bg-afro-brown text-paper py-12 mt-12">
     <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
-      <div>
-        <h3 className="font-display text-2xl font-bold mb-4">Vozes da Ancestralidade</h3>
-        <p className="text-paper/80 text-sm leading-relaxed">
-          Jornal Escolar do Colégio Estadual Frederico Pedreira Neto. 
-          Uma iniciativa interdisciplinar focada na valorização da cultura afro e no protagonismo estudantil.
-        </p>
+      <div className="flex flex-col items-start gap-4">
+        <img 
+          src="https://raw.githubusercontent.com/stackblitz/stackblitz-images/main/vozes-logo.png" 
+          alt="Selo do Jornal" 
+          className="h-20 w-auto opacity-80"
+          onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+        />
+        <div>
+          <h3 className="font-display text-2xl font-bold mb-2">Vozes da Ancestralidade</h3>
+          <p className="text-paper/80 text-sm leading-relaxed">
+            Jornal Escolar do Colégio Estadual Frederico Pedreira Neto. 
+            Iniciativa focada na valorização da cultura afro e protagonismo estudantil.
+          </p>
+        </div>
       </div>
       <div>
         <h4 className="font-bold uppercase tracking-widest text-afro-gold mb-4">Seções Rápidas</h4>
