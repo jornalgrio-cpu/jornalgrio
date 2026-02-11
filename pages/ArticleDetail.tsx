@@ -74,7 +74,7 @@ const ArticleDetail: React.FC = () => {
       {article.image_url && (
         <figure className="mb-12">
           <img src={article.image_url} alt={article.title} className="w-full h-auto rounded shadow-xl" />
-          <figcaption className="text-xs text-gray-400 mt-2 italic text-right">Arquivo / O Griô</figcaption>
+          <figcaption className="text-xs text-gray-400 mt-2 italic text-right">Arquivo / Vozes da Ancestralidade</figcaption>
         </figure>
       )}
 

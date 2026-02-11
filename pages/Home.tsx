@@ -99,7 +99,7 @@ const Home: React.FC = () => {
           {/* Newsletter Box */}
           <div className="bg-afro-brown p-6 text-paper rounded-sm">
             <h3 className="font-display text-2xl font-bold mb-4 border-b border-paper/20 pb-2">Assine a Newsletter</h3>
-            <p className="text-xs mb-6 opacity-80 uppercase tracking-widest">Receba o Griô no seu e-mail ou WhatsApp</p>
+            <p className="text-xs mb-6 opacity-80 uppercase tracking-widest">Receba o Vozes da Ancestralidade no seu e-mail ou WhatsApp</p>
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Inscrito com sucesso!'); }}>
               <input 
                 type="email" 
@@ -156,7 +156,7 @@ const Home: React.FC = () => {
 
           {/* Destaques e PDF */}
           <div className="p-6 bg-white border border-afro-brown/5 shadow-lg flex flex-col items-center text-center">
-             <GraduationCap size={40} className="text-afro-brown mb-4" />
+             < GraduationCap size={40} className="text-afro-brown mb-4" />
              <h3 className="font-display text-xl font-bold mb-2">Edição Impressa</h3>
              <p className="text-sm text-gray-600 mb-6">Baixe a versão mensal para imprimir e compartilhar no colégio.</p>
              <button className="flex items-center gap-2 bg-afro-brown text-paper px-6 py-3 rounded-full font-bold text-sm hover:bg-afro-terracotta transition-colors shadow-md">

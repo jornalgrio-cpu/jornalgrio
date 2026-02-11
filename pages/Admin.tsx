@@ -3,9 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Article, ArticleSection } from '../types';
 import { checkPortugueseText, generateLeadSuggestion } from '../geminiService';
-import { Send, Trash2, CheckCircle, Wand2, FileText, PlusCircle } from 'lucide-react';
+import { Send, Trash2, CheckCircle, Wand2, PlusCircle, LogOut, Key, User } from 'lucide-react';
 
-const Admin: React.FC = () => {
+interface AdminProps {
+  session: any;
+}
+
+const Admin: React.FC<AdminProps> = ({ session }) => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -15,6 +19,11 @@ const Admin: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  
+  // Password change state
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPass, setChangingPass] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -35,7 +44,7 @@ const Admin: React.FC = () => {
     setSubtitle(correctedSubtitle);
     setContent(correctedContent);
     setIsChecking(false);
-    alert("Texto otimizado com IA de acordo com a norma culta!");
+    alert("Texto otimizado com IA!");
   };
 
   const handleAILead = async () => {
@@ -77,23 +86,88 @@ const Admin: React.FC = () => {
   };
 
   const deleteArticle = async (id: string) => {
-    if (!confirm("Tem certeza?")) return;
+    if (!confirm("Tem certeza que deseja excluir esta matéria?")) return;
     await supabase.from('articles').delete().eq('id', id);
     fetchArticles();
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangingPass(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      alert("Erro ao mudar senha: " + error.message);
+    } else {
+      alert("Senha alterada com sucesso!");
+      setNewPassword('');
+    }
+    setChangingPass(false);
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-12">
-        <h2 className="font-display text-4xl font-black text-afro-brown">Painel do Editor</h2>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-afro-terracotta text-white px-6 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-transform"
-        >
-          {showForm ? 'Fechar Editor' : <><PlusCircle size={20}/> Novo Artigo</>}
-        </button>
+      {/* Top Header Admin */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+        <div>
+          <h2 className="font-display text-4xl font-black text-afro-brown uppercase">Painel da Redação</h2>
+          <p className="text-sm font-serif italic text-gray-500">Bem-vindo, {session.user.email}</p>
+        </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => setShowProfile(!showProfile)}
+            className="flex items-center gap-2 border-2 border-afro-brown/20 px-4 py-2 rounded font-bold text-xs uppercase hover:bg-gray-50 transition-colors"
+          >
+            <User size={16}/> Perfil
+          </button>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 bg-afro-terracotta text-white px-6 py-3 rounded font-bold shadow-lg hover:bg-afro-brown transition-colors uppercase text-xs tracking-widest"
+          >
+            {showForm ? 'Fechar Editor' : <><PlusCircle size={16}/> Nova Matéria</>}
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-red-600 px-4 py-2 font-bold text-xs uppercase hover:bg-red-50 rounded"
+          >
+            <LogOut size={16}/> Sair
+          </button>
+        </div>
       </div>
 
+      {/* Profile Section */}
+      {showProfile && (
+        <div className="bg-paper p-8 border-2 border-afro-gold/30 rounded mb-12 shadow-inner max-w-lg">
+          <h3 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">
+            <Key size={20} className="text-afro-terracotta" /> Segurança da Conta
+          </h3>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Nova Senha</label>
+              <input 
+                type="password" 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-afro-gold bg-white"
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+              />
+            </div>
+            <button 
+              disabled={changingPass}
+              className="bg-afro-brown text-paper font-bold px-6 py-2 rounded text-xs uppercase tracking-widest hover:bg-black"
+            >
+              {changingPass ? 'Alterando...' : 'Atualizar Senha'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Editor Form */}
       {showForm && (
         <div className="bg-white p-8 rounded-lg shadow-2xl border-t-8 border-afro-gold mb-12">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,18 +179,18 @@ const Admin: React.FC = () => {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none text-xl font-display"
-                  placeholder="Ex: Aluno do Frederico ganha medalha de ouro..."
+                  placeholder="Ex: Aluno do Frederico ganha medalha..."
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Autor</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Autor da Matéria</label>
                 <input 
                   type="text" 
                   value={author}
                   onChange={e => setAuthor(e.target.value)}
                   className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none"
-                  placeholder="Seu nome completo"
+                  placeholder="Nome do aluno ou professor"
                   required
                 />
               </div>
@@ -140,13 +214,13 @@ const Admin: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">URL da Imagem</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">URL da Imagem de Capa</label>
                 <input 
                   type="url" 
                   value={imageUrl}
                   onChange={e => setImageUrl(e.target.value)}
                   className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none"
-                  placeholder="Link da foto (ex: picsum.photos)"
+                  placeholder="https://exemplo.com/foto.jpg"
                 />
               </div>
             </div>
@@ -168,20 +242,20 @@ const Admin: React.FC = () => {
                 value={subtitle}
                 onChange={e => setSubtitle(e.target.value)}
                 className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none italic font-serif"
-                placeholder="Breve resumo que responda: quem, o que, onde..."
+                placeholder="Breve resumo da notícia..."
               ></textarea>
             </div>
 
             <div className="space-y-2">
                <div className="flex justify-between">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Corpo do Texto</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Conteúdo Completo</label>
                 <button 
                   type="button" 
                   onClick={handleSpellcheck}
                   disabled={isChecking}
                   className="text-xs bg-afro-green/10 text-afro-green px-2 py-1 rounded flex items-center gap-1 hover:bg-afro-green/20"
                 >
-                  <CheckCircle size={12}/> Corretor Gramatical IA
+                  <CheckCircle size={12}/> Revisão Gramatical IA
                 </button>
               </div>
               <textarea 
@@ -189,65 +263,66 @@ const Admin: React.FC = () => {
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 className="w-full p-4 border-2 border-gray-100 focus:border-afro-gold outline-none font-serif leading-relaxed"
-                placeholder="Desenvolva a notícia..."
+                placeholder="Desenvolva o texto principal..."
                 required
               ></textarea>
             </div>
 
-            <div className="flex gap-4">
-              <button 
-                type="submit" 
-                className="flex-grow bg-afro-brown text-paper font-bold py-4 rounded uppercase tracking-widest hover:bg-black transition-colors flex justify-center items-center gap-2"
-              >
-                <Send size={20}/> Publicar no Jornal
-              </button>
-              <button 
-                type="button"
-                onClick={resetForm}
-                className="px-6 border-2 border-gray-200 hover:bg-gray-50 rounded"
-              >
-                Limpar
-              </button>
-            </div>
+            <button 
+              type="submit" 
+              className="w-full bg-afro-brown text-paper font-bold py-4 rounded uppercase tracking-widest hover:bg-black transition-colors flex justify-center items-center gap-2"
+            >
+              <Send size={20}/> Publicar no Vozes da Ancestralidade
+            </button>
           </form>
         </div>
       )}
 
+      {/* Articles List */}
       <div className="bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+        <div className="p-4 bg-gray-50 border-b border-gray-100 font-bold uppercase text-xs tracking-widest flex items-center gap-2">
+          Gerenciamento de Publicações
+        </div>
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="p-4 text-xs font-bold uppercase text-gray-500">Artigo</th>
-              <th className="p-4 text-xs font-bold uppercase text-gray-500">Seção</th>
-              <th className="p-4 text-xs font-bold uppercase text-gray-500">Data</th>
-              <th className="p-4 text-xs font-bold uppercase text-gray-500 text-right">Ações</th>
+              <th className="p-4 text-[10px] font-bold uppercase text-gray-400">Título / Autor</th>
+              <th className="p-4 text-[10px] font-bold uppercase text-gray-400">Seção</th>
+              <th className="p-4 text-[10px] font-bold uppercase text-gray-400">Publicado em</th>
+              <th className="p-4 text-[10px] font-bold uppercase text-gray-400 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {articles.map(art => (
               <tr key={art.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="p-4">
-                  <div className="font-bold text-gray-800">{art.title}</div>
-                  <div className="text-xs text-gray-400">Por {art.author_name}</div>
+                  <div className="font-bold text-gray-800 text-sm">{art.title}</div>
+                  <div className="text-[10px] text-gray-400 uppercase">Por {art.author_name}</div>
                 </td>
                 <td className="p-4">
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded uppercase font-bold text-gray-600">{art.section}</span>
+                  <span className="text-[10px] bg-gray-100 px-2 py-1 rounded uppercase font-bold text-gray-500">{art.section}</span>
                 </td>
-                <td className="p-4 text-xs text-gray-500">
+                <td className="p-4 text-xs text-gray-500 font-serif">
                   {new Date(art.created_at).toLocaleDateString('pt-BR')}
                 </td>
                 <td className="p-4 text-right">
                   <button 
                     onClick={() => deleteArticle(art.id)}
-                    className="text-red-400 hover:text-red-600 p-2"
+                    className="text-red-300 hover:text-red-600 p-2 transition-colors"
+                    title="Excluir"
                   >
-                    <Trash2 size={18}/>
+                    <Trash2 size={16}/>
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {articles.length === 0 && (
+          <div className="p-10 text-center text-gray-400 italic font-serif">
+            Nenhuma matéria publicada ainda. Comece agora!
+          </div>
+        )}
       </div>
     </div>
   );
