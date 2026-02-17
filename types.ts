@@ -8,6 +8,7 @@ export interface Article {
   author_role: string;
   section: ArticleSection;
   image_url: string;
+  images?: string[]; // Array para fotos adicionais (galeria)
   created_at: string;
   is_published: boolean;
 }

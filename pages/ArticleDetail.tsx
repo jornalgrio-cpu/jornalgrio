@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { Article, Comment } from '../types';
-import { MessageSquare, Calendar, User, Share2 } from 'lucide-react';
+import { MessageSquare, Calendar, User, Share2, Image as ImageIcon } from 'lucide-react';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +47,8 @@ const ArticleDetail: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-20 text-center">Carregando conteúdo...</div>;
-  if (!article) return <div className="p-20 text-center">Artigo não encontrado.</div>;
+  if (loading) return <div className="p-20 text-center font-serif italic text-afro-brown">Carregando conteúdo...</div>;
+  if (!article) return <div className="p-20 text-center font-serif italic">Artigo não encontrado.</div>;
 
   return (
     <article className="container mx-auto max-w-4xl px-4 py-12">
@@ -67,20 +67,40 @@ const ArticleDetail: React.FC = () => {
         <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-sans text-gray-500 border-y border-afro-brown/10 py-4">
           <div className="flex items-center gap-2"><User size={16} /> Por <strong>{article.author_name}</strong></div>
           <div className="flex items-center gap-2"><Calendar size={16} /> {new Date(article.created_at).toLocaleDateString('pt-BR')}</div>
-          <div className="flex items-center gap-2"><Share2 size={16} className="cursor-pointer hover:text-afro-terracotta" /> Compartilhar</div>
+          <div className="flex items-center gap-2"><Share2 size={16} className="cursor-pointer hover:text-afro-terracotta transition-colors" /> Compartilhar</div>
         </div>
       </header>
 
       {article.image_url && (
         <figure className="mb-12">
-          <img src={article.image_url} alt={article.title} className="w-full h-auto rounded shadow-xl" />
-          <figcaption className="text-xs text-gray-400 mt-2 italic text-right">Arquivo / Vozes da Ancestralidade</figcaption>
+          <img src={article.image_url} alt={article.title} className="w-full h-auto rounded-sm shadow-xl grayscale hover:grayscale-0 transition-all duration-700" />
+          <figcaption className="text-xs text-gray-400 mt-3 italic text-right font-serif">Foto: Acervo / Vozes da Ancestralidade</figcaption>
         </figure>
       )}
 
-      <div className="prose prose-lg max-w-none font-serif text-gray-800 leading-relaxed mb-16 whitespace-pre-line">
+      <div className="prose prose-lg max-w-none font-serif text-gray-800 leading-relaxed mb-16 whitespace-pre-line text-justify first-letter:text-5xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-afro-brown">
         {article.content}
       </div>
+
+      {/* Galeria de Fotos Adicionais */}
+      {article.images && article.images.length > 0 && (
+        <section className="mb-16">
+          <h3 className="font-display text-xl font-bold mb-6 flex items-center gap-2 text-afro-brown border-b border-afro-brown/10 pb-2 uppercase tracking-widest">
+            <ImageIcon size={20} className="text-afro-terracotta" /> Registros da Redação
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {article.images.map((img, idx) => (
+              <div key={idx} className="overflow-hidden rounded-sm shadow-md group">
+                <img 
+                  src={img} 
+                  alt={`Galeria ${idx + 1}`} 
+                  className="w-full h-64 object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500 cursor-pointer"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="border-t-2 border-afro-brown/20 pt-12">
         <h3 className="font-display text-3xl font-bold mb-8 flex items-center gap-3">
@@ -89,15 +109,15 @@ const ArticleDetail: React.FC = () => {
 
         <div className="space-y-6 mb-12">
           {comments.length === 0 ? (
-            <p className="text-gray-500 italic">Nenhum comentário ainda. Seja o primeiro a participar!</p>
+            <p className="text-gray-500 italic font-serif">Nenhum comentário ainda. Seja o primeiro a participar!</p>
           ) : (
             comments.map(c => (
               <div key={c.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <div className="flex justify-between items-start mb-3">
                   <span className="font-bold text-afro-brown">{c.author_name}</span>
-                  <span className="text-[10px] uppercase text-gray-400 font-bold">{new Date(c.created_at).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-[10px] uppercase text-gray-400 font-bold tracking-widest">{new Date(c.created_at).toLocaleDateString('pt-BR')}</span>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{c.content}</p>
+                <p className="text-gray-700 leading-relaxed font-serif">{c.content}</p>
               </div>
             ))
           )}
@@ -112,7 +132,7 @@ const ArticleDetail: React.FC = () => {
                 placeholder="Seu Nome" 
                 value={commentName}
                 onChange={e => setCommentName(e.target.value)}
-                className="w-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-afro-gold bg-white"
+                className="w-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-afro-gold bg-white font-sans"
                 required
               />
             </div>
@@ -121,14 +141,14 @@ const ArticleDetail: React.FC = () => {
               placeholder="Sua mensagem..."
               value={commentText}
               onChange={e => setCommentText(e.target.value)}
-              className="w-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-afro-gold bg-white"
+              className="w-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-afro-gold bg-white font-serif"
               required
             ></textarea>
-            <button className="bg-afro-brown text-paper font-bold px-8 py-3 rounded uppercase tracking-widest text-sm hover:bg-afro-terracotta transition-colors">
+            <button className="bg-afro-brown text-paper font-bold px-8 py-3 rounded uppercase tracking-widest text-sm hover:bg-afro-terracotta transition-colors shadow-md">
               Enviar Comentário
             </button>
           </form>
-          <p className="text-[10px] mt-4 text-gray-500 uppercase font-bold tracking-widest">* Seu comentário será revisado pela equipe editorial antes de ser publicado.</p>
+          <p className="text-[10px] mt-4 text-gray-400 uppercase font-bold tracking-widest">* Seu comentário será revisado pela equipe editorial antes de ser publicado.</p>
         </div>
       </section>
     </article>
