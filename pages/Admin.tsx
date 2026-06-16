@@ -11,8 +11,31 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [recadinhos, setRecadinhos] = useState<Recadinho[]>([]);
-  const [activeTab, setActiveTab] = useState<'articles' | 'subscribers' | 'recadinhos'>('articles');
+  const [activeTab, setActiveTab] = useState<'articles' | 'subscribers' | 'recadinhos' | 'security'>('articles');
   
+  const [newPassword, setNewPassword] = useState('fred@fred2026');
+  const [passwordStatus, setNewPasswordStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setNewPasswordStatus({ type: 'error', message: 'A senha deve ter pelo menos 6 caracteres.' });
+      return;
+    }
+    setIsUpdatingPassword(true);
+    setNewPasswordStatus({ type: null, message: '' });
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setNewPasswordStatus({ type: 'success', message: 'Senha do editor-chefe alterada com sucesso para: ' + newPassword });
+    } catch (err: any) {
+      setNewPasswordStatus({ type: 'error', message: 'Erro ao alterar a senha: ' + (err.message || 'Erro desconhecido') });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [content, setContent] = useState('');
@@ -20,6 +43,7 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
   const [section, setSection] = useState<ArticleSection>('Aconteceu na Escola');
   const [imageUrl, setImageUrl] = useState('');
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+  const [attachedPdf, setAttachedPdf] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
@@ -29,6 +53,8 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
 
   const mainFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
+  const partPdfFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchArticles();
@@ -119,9 +145,22 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    
+    // Agrupa imagens adicionais comuns e o novo anexo PDF (se houver) no array de imagens
+    const finalImagesArray = [...additionalImages.filter(img => img && img.trim() !== '')];
+    if (attachedPdf) {
+      finalImagesArray.push(attachedPdf);
+    }
+
     const articleData = {
-      title, subtitle, content, author_name: author, section, image_url: imageUrl,
-      images: additionalImages.filter(img => img && img.trim() !== ''), is_published: true
+      title, 
+      subtitle, 
+      content, 
+      author_name: author, 
+      section, 
+      image_url: imageUrl,
+      images: finalImagesArray, 
+      is_published: true
     };
 
     try {
@@ -141,14 +180,20 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
 
   const resetForm = () => {
     setTitle(''); setSubtitle(''); setContent(''); setAuthor(''); setImageUrl('');
-    setAdditionalImages([]); setEditingArticleId(null);
+    setAdditionalImages([]); setAttachedPdf(''); setEditingArticleId(null);
   };
 
   const startEditing = (article: Article) => {
     setEditingArticleId(article.id);
     setTitle(article.title); setSubtitle(article.subtitle || ''); setContent(article.content);
     setAuthor(article.author_name); setSection(article.section); setImageUrl(article.image_url || '');
-    setAdditionalImages(article.images || []);
+    
+    // Separa imagens da galeria e o item em PDF específico
+    const pdfItem = article.images?.find(img => img.startsWith('data:application/pdf')) || '';
+    const otherImages = article.images?.filter(img => !img.startsWith('data:application/pdf')) || [];
+    
+    setAdditionalImages(otherImages);
+    setAttachedPdf(pdfItem);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -189,6 +234,12 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
         >
           <MessageSquareHeart size={16}/> Mural ({recadinhos.length})
         </button>
+        <button 
+          onClick={() => setActiveTab('security')}
+          className={`px-6 py-3 font-bold text-[10px] md:text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'security' ? 'border-afro-brown text-afro-brown' : 'border-transparent text-gray-400'}`}
+        >
+          <Key size={16}/> Segurança
+        </button>
       </div>
 
       {activeTab === 'articles' && (
@@ -197,21 +248,140 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
             <div className="bg-white p-8 rounded-lg shadow-2xl border-t-8 border-afro-gold mb-12 animate-in slide-in-from-top duration-500">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <h3 className="font-display text-2xl font-bold uppercase text-afro-brown">{editingArticleId ? 'Editar Matéria' : 'Nova Matéria'}</h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Título" className="w-full p-3 border-2 border-gray-100 outline-none font-display text-xl" required />
-                  <input type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="Autor" className="w-full p-3 border-2 border-gray-100 outline-none" required />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <select value={section} onChange={e => setSection(e.target.value as any)} className="w-full p-3 border-2 border-gray-100 outline-none">
-                    <option>Editorial</option><option>Aconteceu na Escola</option><option>Entrevistas</option><option>Opinião</option><option>Estudos</option><option>Curiosidades</option><option>Carreira</option>
-                  </select>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => mainFileRef.current?.click()} className="bg-afro-brown text-white px-4 py-2 rounded text-[10px] font-bold uppercase flex items-center gap-2"><Upload size={14}/> Foto de Capa</button>
-                    <input type="file" ref={mainFileRef} onChange={async (e) => setImageUrl(await handleFileToBase64(e.target.files![0]))} className="hidden" accept="image/*" />
-                    <input type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="URL da imagem (opcional)" className="flex-1 p-2 border border-gray-100 text-[10px]" />
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Título Principal</label>
+                    <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Título da matéria" className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none font-display text-xl" required />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Autor / Repórter</label>
+                    <input type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="Nome do autor ou turma" className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none" required />
                   </div>
                 </div>
-                <textarea rows={10} value={content} onChange={e => setContent(e.target.value)} placeholder="Conteúdo da matéria..." className="w-full p-4 border-2 border-gray-100 outline-none font-serif leading-relaxed" required />
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Subtítulo / Linha de Apoio (Opcional)</label>
+                  <input type="text" value={subtitle} onChange={e => setSubtitle(e.target.value)} placeholder="Subtítulo ou resumo que introduz a reportagem" className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none italic font-serif text-sm" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Editoria / Seção</label>
+                     <select value={section} onChange={e => setSection(e.target.value as any)} className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none">
+                       <option>Editorial</option><option>Aconteceu na Escola</option><option>Entrevistas</option><option>Opinião</option><option>Estudos</option><option>Curiosidades</option><option>Carreira</option>
+                     </select>
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Foto de Capa Principal</label>
+                     <div className="flex gap-2">
+                       <button type="button" onClick={() => mainFileRef.current?.click()} className="bg-afro-brown text-white px-4 py-2 rounded text-[10px] font-bold uppercase flex items-center gap-2 whitespace-nowrap"><Upload size={14}/> Carregar</button>
+                       <input type="file" ref={mainFileRef} onChange={async (e) => setImageUrl(await handleFileToBase64(e.target.files![0]))} className="hidden" accept="image/*" />
+                       <input type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Cole o link da foto ou carregue ao lado" className="flex-1 p-2 border border-gray-100 text-[10px] outline-none" />
+                     </div>
+                  </div>
+                </div>
+
+                {/* PDF e Fotos Adicionais específicos desta matéria */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FDFCF0]/50 p-6 rounded-sm border-2 border-[#3D1B13]/10 pb-6">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-afro-brown flex items-center gap-2">
+                      <FileText size={16} className="text-afro-terracotta" /> Versão Diagramada (PDF do Artigo)
+                    </h4>
+                    <p className="text-[11px] text-gray-500 leading-relaxed font-serif italic">
+                      Se você tem esta reportagem com diagramação de jornal como os anexos históricos pág. 1-4, envie o PDF abaixo para os leitores baixarem e lerem.
+                    </p>
+                    <div className="flex items-center gap-3 pt-1">
+                      <button 
+                        type="button" 
+                        onClick={() => partPdfFileRef.current?.click()} 
+                        className="bg-white border-2 border-afro-brown/20 text-afro-brown px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Upload size={12}/> {attachedPdf ? 'Substituir PDF' : 'Anexar PDF'}
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={partPdfFileRef} 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.type !== 'application/pdf') return alert("Selecione somente arquivos PDF.");
+                            const base64 = await handleFileToBase64(file);
+                            setAttachedPdf(base64);
+                          }
+                        }} 
+                        className="hidden" 
+                        accept="application/pdf" 
+                      />
+                      {attachedPdf && (
+                        <div className="flex items-center gap-1.5 text-xs text-afro-green font-bold">
+                          <CheckCircle size={14}/> PDF Anexado
+                          <button 
+                            type="button" 
+                            onClick={() => setAttachedPdf('')} 
+                            className="text-red-500 hover:text-red-700 ml-2"
+                            title="Remover anexo"
+                          >
+                            <X size={14}/>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-afro-brown flex items-center gap-2">
+                      <ImageIcon size={16} className="text-afro-terracotta" /> Galeria / Fotos da Reportagem
+                    </h4>
+                    <p className="text-[11px] text-gray-500 leading-relaxed font-serif italic">
+                      Adicione fotos adicionais da redação para ilustrar o acontecimento.
+                    </p>
+                    <div className="flex items-center gap-3 pt-1">
+                      <button 
+                        type="button" 
+                        onClick={() => galleryFileRef.current?.click()} 
+                        className="bg-white border-2 border-afro-brown/20 text-afro-brown px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Upload size={12}/> {additionalImages.length > 0 ? 'Adicionar Fotos' : 'Enviar Fotos'}
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={galleryFileRef} 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const base64 = await handleFileToBase64(file);
+                            setAdditionalImages(prev => [...prev, base64]);
+                          }
+                        }} 
+                        className="hidden" 
+                        accept="image/*" 
+                      />
+                    </div>
+                    {additionalImages.length > 0 && (
+                      <div className="grid grid-cols-5 gap-2 pt-2 border-t border-gray-100">
+                        {additionalImages.map((img, idx) => (
+                          <div key={idx} className="relative w-full aspect-square border border-gray-100 rounded overflow-hidden group">
+                            <img src={img} className="w-full h-full object-cover" alt="Adicional" />
+                            <button 
+                              type="button" 
+                              onClick={() => setAdditionalImages(prev => prev.filter((_, i) => i !== idx))}
+                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 hover:bg-red-800 transition-colors"
+                            >
+                              <X size={10}/>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Conteúdo Escrito da Matéria</label>
+                  <textarea rows={10} value={content} onChange={e => setContent(e.target.value)} placeholder="Conteúdo da matéria..." className="w-full p-4 border-2 border-gray-100 focus:border-afro-gold outline-none font-serif leading-relaxed" required />
+                </div>
+
                 <button type="submit" disabled={isSaving} className="w-full bg-afro-brown text-white font-bold py-4 rounded uppercase tracking-widest hover:bg-black transition-colors flex justify-center items-center gap-2">
                   {isSaving ? <Loader2 className="animate-spin" /> : <Send size={20} />} {editingArticleId ? 'Salvar Edição' : 'Publicar Agora'}
                 </button>
@@ -307,6 +477,67 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {activeTab === 'security' && (
+        <div className="bg-white rounded shadow-xl overflow-hidden border border-gray-100 max-w-lg mx-auto animate-in fade-in duration-500">
+          <div className="p-6 bg-afro-brown text-paper flex justify-between items-center">
+             <h3 className="font-display text-xl font-bold uppercase tracking-widest">Segurança da Redação</h3>
+             <Key className="text-afro-gold" size={24} />
+          </div>
+          <div className="p-6 space-y-6">
+            <p className="text-xs text-gray-500 leading-relaxed uppercase tracking-wider font-bold">
+              Como editor-chefe ou redator credenciado do Frederico Pedreira Neto, você pode atualizar suas credenciais de acesso diretamente.
+            </p>
+
+            {passwordStatus.message && (
+              <div id="password-status-alert" className={`p-4 rounded-sm text-sm border font-medium ${
+                passwordStatus.type === 'success' 
+                  ? 'bg-green-50 border-green-200 text-green-800' 
+                  : 'bg-red-50 border-red-200 text-red-800'
+              }`}>
+                {passwordStatus.message}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nova Senha Escolhida</label>
+                <input 
+                  type="text" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-100 focus:border-afro-gold outline-none font-mono"
+                  placeholder="Coloque a senha desejada"
+                  required
+                />
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-sm p-4 text-xs text-amber-800 space-y-2">
+                <p className="font-bold uppercase tracking-wider">💡 Dica de Mudança Rápida</p>
+                <p>O campo já está preenchido com a nova senha solicitada: <strong className="font-mono bg-amber-100/50 px-1 py-0.5 rounded text-amber-900">fred@fred2026</strong>. Basta clicar no botão abaixo para confirmar a alteração no banco de dados do Supabase.</p>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isUpdatingPassword}
+                className="w-full bg-afro-terracotta text-paper font-bold py-4 rounded uppercase tracking-widest hover:bg-afro-brown transition-colors flex justify-center items-center gap-2"
+              >
+                {isUpdatingPassword ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={18} />
+                    Mudar Senha para {newPassword}
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>

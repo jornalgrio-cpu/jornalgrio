@@ -1,5 +1,6 @@
 {
   "name": "Vozes da Ancestralidade - Jornal do Colégio Frederico Pedreira Neto",
   "description": "Um portal de notícias interdisciplinar focado no protagonismo estudantil e na cultura afro-brasileira, servindo como ferramenta pedagógica e elo com a comunidade.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }

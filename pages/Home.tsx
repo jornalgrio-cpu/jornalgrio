@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Article, AgendaItem, Recadinho } from '../types';
 import { Link } from 'react-router-dom';
-import { Calendar, Heart, GraduationCap, ArrowRight, Download, Loader2, Send } from 'lucide-react';
+import { Calendar, Heart, GraduationCap, ArrowRight, Download, Loader2, Send, FileText } from 'lucide-react';
 
 const Home: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -109,10 +109,15 @@ const Home: React.FC = () => {
           {mainArticle && (
             <article className="border-b border-afro-brown/20 pb-12">
               <Link to={`/artigo/${mainArticle.id}`} className="group block">
-                <div className="mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <span className="text-afro-terracotta font-bold uppercase tracking-widest text-sm">{mainArticle.section}</span>
+                  {mainArticle.images?.some(img => img.startsWith('data:application/pdf')) && (
+                    <span className="bg-afro-gold text-afro-brown font-black px-2.5 py-1 rounded-sm text-[10px] uppercase tracking-widest flex items-center gap-1 shadow-sm">
+                      <FileText size={12} /> Versão Impressa / PDF
+                    </span>
+                  )}
                 </div>
-                <h2 className="font-display text-4xl md:text-5xl font-black mb-4 group-hover:underline leading-tight">
+                <h2 className="font-display text-4xl md:text-5xl font-black mb-4 group-hover:underline leading-tight text-afro-brown">
                   {mainArticle.title}
                 </h2>
                 <p className="text-xl text-gray-700 mb-6 font-serif italic">
@@ -122,7 +127,7 @@ const Home: React.FC = () => {
                   <img 
                     src={mainArticle.image_url} 
                     alt={mainArticle.title} 
-                    className="w-full h-96 object-cover mb-6 grayscale hover:grayscale-0 transition-all duration-500 rounded-sm"
+                    className="w-full h-96 object-cover mb-6 grayscale hover:grayscale-0 transition-all duration-500 rounded-sm shadow-md"
                   />
                 )}
                 <div className="flex justify-between items-center text-sm text-gray-500 font-sans">
@@ -137,10 +142,15 @@ const Home: React.FC = () => {
             {secondaryArticles.map((art) => (
               <article key={art.id} className="border-b border-afro-brown/10 pb-6">
                 <Link to={`/artigo/${art.id}`} className="group block">
-                   <div className="mb-2">
+                  <div className="mb-2 flex items-center justify-between">
                     <span className="text-afro-terracotta font-bold uppercase text-xs">{art.section}</span>
+                    {art.images?.some(img => img.startsWith('data:application/pdf')) && (
+                      <span className="bg-afro-gold/20 text-afro-brown font-bold px-1.5 py-0.5 rounded text-[9px] uppercase tracking-widest flex items-center gap-1 border border-afro-gold/30">
+                        <FileText size={10} /> PDF Impresso
+                      </span>
+                    )}
                   </div>
-                  <h3 className="font-display text-2xl font-bold mb-3 group-hover:underline">
+                  <h3 className="font-display text-2xl font-bold mb-3 group-hover:underline text-afro-brown">
                     {art.title}
                   </h3>
                   <p className="text-gray-600 line-clamp-3 text-sm leading-relaxed mb-4">
