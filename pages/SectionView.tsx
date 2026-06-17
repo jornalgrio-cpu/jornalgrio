@@ -15,12 +15,14 @@ const SectionView: React.FC = () => {
 
   const fetchArticles = async (sectionName: string) => {
     setLoading(true);
-    const { data } = await supabase.from('articles').select('*').eq('section', sectionName).order('created_at', { ascending: false });
+    const { data } = await supabase.from('articles').select('id, title, subtitle, author_name, section, image_url, created_at').eq('section', sectionName).order('created_at', { ascending: false });
     if (data) setArticles(data);
     setLoading(false);
   };
 
-  if (loading) return <div className="p-20 text-center">Carregando seção...</div>;
+  const cleanSubtitle = (sub: string) => sub ? sub.replace(/\s*\[PDF\]$/gi, '').trim() : '';
+
+  if (loading) return <div className="p-20 text-center font-serif italic text-afro-brown">Carregando seção...</div>;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -48,11 +50,11 @@ const SectionView: React.FC = () => {
                     />
                   </div>
                 )}
-                <h3 className="font-display text-2xl font-bold mb-3 group-hover:underline leading-tight">
+                <h3 className="font-display text-2xl font-bold mb-3 group-hover:underline leading-tight text-afro-brown">
                   {art.title}
                 </h3>
                 <p className="text-gray-600 line-clamp-3 mb-4 font-serif text-sm">
-                  {art.subtitle}
+                  {cleanSubtitle(art.subtitle)}
                 </p>
                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
                   <span>{art.author_name}</span>

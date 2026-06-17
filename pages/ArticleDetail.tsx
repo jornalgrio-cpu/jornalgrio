@@ -107,7 +107,7 @@ const ArticleDetail: React.FC = () => {
           {article.title}
         </h1>
         <p className="text-2xl text-gray-600 font-serif italic mb-8 max-w-2xl mx-auto">
-          {article.subtitle}
+          {article.subtitle ? article.subtitle.replace(/\s*\[PDF\]$/gi, '').trim() : ''}
         </p>
         <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-sans text-gray-500 border-y border-afro-brown/10 py-4">
           <div className="flex items-center gap-2"><User size={16} /> Por <strong>{article.author_name}</strong></div>

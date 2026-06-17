@@ -64,7 +64,7 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
   }, []);
 
   const fetchArticles = async () => {
-    const { data } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('articles').select('id, title, subtitle, author_name, section, image_url, created_at, is_published').order('created_at', { ascending: false });
     if (data) setArticles(data);
   };
 
@@ -152,9 +152,13 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
       finalImagesArray.push(attachedPdf);
     }
 
+    // Se tiver attachedPdf, garantimos que o subtítulo termina com " [PDF]" para listagem ultrarrápida
+    const cleanSubField = subtitle ? subtitle.replace(/\s*\[PDF\]$/gi, '').trim() : '';
+    const finalSubtitleField = attachedPdf ? `${cleanSubField} [PDF]` : cleanSubField;
+
     const articleData = {
       title, 
-      subtitle, 
+      subtitle: finalSubtitleField, 
       content, 
       author_name: author, 
       section, 
@@ -183,14 +187,29 @@ const Admin: React.FC<AdminProps> = ({ session }) => {
     setAdditionalImages([]); setAttachedPdf(''); setEditingArticleId(null);
   };
 
-  const startEditing = (article: Article) => {
-    setEditingArticleId(article.id);
-    setTitle(article.title); setSubtitle(article.subtitle || ''); setContent(article.content);
-    setAuthor(article.author_name); setSection(article.section); setImageUrl(article.image_url || '');
+  const startEditing = async (article: Article) => {
+    // Busca do banco de dados o artigo completo com todas as colunas pesadas
+    const { data, error } = await supabase.from('articles').select('*').eq('id', article.id).single();
+    if (error || !data) {
+      alert("Erro ao buscar conteúdo completo desta matéria.");
+      return;
+    }
+    const fullArticle = data;
+    setEditingArticleId(fullArticle.id);
+    setTitle(fullArticle.title); 
+    
+    // Mostra o subtítulo sem a marca [PDF] no formulário de edição
+    const cleanSub = fullArticle.subtitle ? fullArticle.subtitle.replace(/\s*\[PDF\]$/gi, '').trim() : '';
+    setSubtitle(cleanSub); 
+    
+    setContent(fullArticle.content);
+    setAuthor(fullArticle.author_name); 
+    setSection(fullArticle.section); 
+    setImageUrl(fullArticle.image_url || '');
     
     // Separa imagens da galeria e o item em PDF específico
-    const pdfItem = article.images?.find(img => img.startsWith('data:application/pdf')) || '';
-    const otherImages = article.images?.filter(img => !img.startsWith('data:application/pdf')) || [];
+    const pdfItem = fullArticle.images?.find((img: string) => img.startsWith('data:application/pdf')) || '';
+    const otherImages = fullArticle.images?.filter((img: string) => !img.startsWith('data:application/pdf')) || [];
     
     setAdditionalImages(otherImages);
     setAttachedPdf(pdfItem);

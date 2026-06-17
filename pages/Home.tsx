@@ -24,9 +24,9 @@ const Home: React.FC = () => {
     setLoading(true);
     try {
       const [arts, sched, notes] = await Promise.all([
-        supabase.from('articles').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('agenda').select('*').order('event_date', { ascending: true }).limit(5),
-        supabase.from('recadinhos').select('*').order('created_at', { ascending: false }).limit(8)
+        supabase.from('articles').select('id, title, subtitle, author_name, section, image_url, created_at').order('created_at', { ascending: false }).limit(6),
+        supabase.from('agenda').select('id, event_title, event_date, description').order('event_date', { ascending: true }).limit(5),
+        supabase.from('recadinhos').select('id, sender, message, created_at').order('created_at', { ascending: false }).limit(8)
       ]);
 
       if (arts.data) setArticles(arts.data);
@@ -101,6 +101,9 @@ const Home: React.FC = () => {
   const mainArticle = articles[0];
   const secondaryArticles = articles.slice(1);
 
+  const cleanSubtitle = (sub: string) => sub ? sub.replace(/\s*\[PDF\]$/gi, '').trim() : '';
+  const hasPdf = (sub: string) => sub ? /\s*\[PDF\]$/gi.test(sub) : false;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -108,10 +111,10 @@ const Home: React.FC = () => {
         <div className="lg:col-span-8 space-y-12">
           {mainArticle && (
             <article className="border-b border-afro-brown/20 pb-12">
-              <Link to={`/artigo/${mainArticle.id}`} className="group block">
+               <Link to={`/artigo/${mainArticle.id}`} className="group block">
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-afro-terracotta font-bold uppercase tracking-widest text-sm">{mainArticle.section}</span>
-                  {mainArticle.images?.some(img => img.startsWith('data:application/pdf')) && (
+                  {hasPdf(mainArticle.subtitle) && (
                     <span className="bg-afro-gold text-afro-brown font-black px-2.5 py-1 rounded-sm text-[10px] uppercase tracking-widest flex items-center gap-1 shadow-sm">
                       <FileText size={12} /> Versão Impressa / PDF
                     </span>
@@ -121,7 +124,7 @@ const Home: React.FC = () => {
                   {mainArticle.title}
                 </h2>
                 <p className="text-xl text-gray-700 mb-6 font-serif italic">
-                  {mainArticle.subtitle}
+                  {cleanSubtitle(mainArticle.subtitle)}
                 </p>
                 {mainArticle.image_url && (
                   <img 
@@ -144,7 +147,7 @@ const Home: React.FC = () => {
                 <Link to={`/artigo/${art.id}`} className="group block">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-afro-terracotta font-bold uppercase text-xs">{art.section}</span>
-                    {art.images?.some(img => img.startsWith('data:application/pdf')) && (
+                    {hasPdf(art.subtitle) && (
                       <span className="bg-afro-gold/20 text-afro-brown font-bold px-1.5 py-0.5 rounded text-[9px] uppercase tracking-widest flex items-center gap-1 border border-afro-gold/30">
                         <FileText size={10} /> PDF Impresso
                       </span>
@@ -154,7 +157,7 @@ const Home: React.FC = () => {
                     {art.title}
                   </h3>
                   <p className="text-gray-600 line-clamp-3 text-sm leading-relaxed mb-4">
-                    {art.subtitle}
+                    {cleanSubtitle(art.subtitle)}
                   </p>
                   <div className="flex justify-between items-center text-xs text-gray-500">
                     <span>{art.author_name}</span>

@@ -3,14 +3,14 @@ export interface Article {
   id: string;
   title: string;
   subtitle: string;
-  content: string;
+  content?: string;
   author_name: string;
-  author_role: string;
+  author_role?: string;
   section: ArticleSection;
   image_url: string;
   images?: string[]; // Array para fotos adicionais (galeria)
   created_at: string;
-  is_published: boolean;
+  is_published?: boolean;
 }
 
 export type ArticleSection = 
