@@ -8,7 +8,7 @@ import Admin from './pages/Admin';
 import SectionView from './pages/SectionView';
 import Login from './pages/Login';
 import Mural from './pages/Mural'; // Importando a nova página
-import { Youtube, Home as HomeIcon, Settings, User as UserIcon, Menu } from 'lucide-react';
+import { Youtube, Instagram, Home as HomeIcon, Settings, User as UserIcon, Menu } from 'lucide-react';
 
 const Header = ({ session }: { session: any }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,7 +23,7 @@ const Header = ({ session }: { session: any }) => {
 
   return (
     <header className="bg-paper">
-      <div className="container mx-auto px-4 py-3 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold text-afro-brown border-b border-afro-brown/10 flex justify-between items-center">
+      <div className="container mx-auto px-4 py-3 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold text-afro-brown border-b border-afro-brown/10 flex justify-between items-center bg-paper">
         <div className="hidden md:block">
           Palmas, Tocantins • {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
@@ -31,9 +31,13 @@ const Header = ({ session }: { session: any }) => {
           {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
         </div>
         <div className="flex items-center gap-4">
-          <a href="https://www.youtube.com/channel/UCXTMxk4z8UHu4Ys6sWfTGPQ" target="_blank" rel="noopener noreferrer" className="hover:text-red-700 transition-colors flex items-center gap-1">
-            <Youtube size={14} /> <span className="hidden sm:inline">YouTube</span>
+          <a href="https://www.youtube.com/channel/UCXTMxk4z8UHu4Ys6sWfTGPQ" target="_blank" rel="noopener noreferrer" className="hover:text-red-700 transition-colors flex items-center gap-1.5 font-bold">
+            <Youtube size={14} className="text-red-600" /> <span className="hidden sm:inline">YouTube</span>
           </a>
+          <a href="https://www.instagram.com/vozesdaancestralidade.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-700 transition-colors flex items-center gap-1.5 font-bold">
+            <Instagram size={14} className="text-pink-600" /> <span className="hidden sm:inline">Instagram</span>
+          </a>
+          <span className="text-afro-brown/20 select-none">|</span>
           <Link to={session ? "/admin" : "/login"} className="hover:text-afro-terracotta transition-colors flex items-center gap-1">
             {session ? <><UserIcon size={14} /> Painel</> : <><Settings size={14} /> Acesso</>}
           </Link>
@@ -84,8 +88,17 @@ const Header = ({ session }: { session: any }) => {
 
 const Footer = () => (
   <footer className="bg-afro-brown text-paper py-16 border-t-8 border-afro-gold">
-    <div className="container mx-auto px-4 text-center">
-      <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-paper/30">
+    <div className="container mx-auto px-4 text-center space-y-4">
+      <div className="flex justify-center items-center gap-6 text-xs uppercase tracking-widest font-black text-paper/70">
+        <a href="https://www.youtube.com/channel/UCXTMxk4z8UHu4Ys6sWfTGPQ" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors flex items-center gap-1.5">
+          <Youtube size={16} /> YouTube
+        </a>
+        <span className="text-paper/20">|</span>
+        <a href="https://www.instagram.com/vozesdaancestralidade.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition-colors flex items-center gap-1.5">
+          <Instagram size={16} /> Instagram
+        </a>
+      </div>
+      <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-paper/30 pt-4 border-t border-paper/10 max-w-md mx-auto">
         &copy; {new Date().getFullYear()} Vozes da Ancestralidade - Colégio Frederico Pedreira Neto
       </div>
     </div>
