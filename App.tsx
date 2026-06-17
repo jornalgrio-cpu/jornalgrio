@@ -34,7 +34,7 @@ const Header = ({ session }: { session: any }) => {
           <a href="https://www.youtube.com/channel/UCXTMxk4z8UHu4Ys6sWfTGPQ" target="_blank" rel="noopener noreferrer" className="hover:text-red-700 transition-colors flex items-center gap-1.5 font-bold">
             <Youtube size={14} className="text-red-600" /> <span className="hidden sm:inline">YouTube</span>
           </a>
-          <a href="https://www.instagram.com/vozesdaancestralidade.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-700 transition-colors flex items-center gap-1.5 font-bold">
+          <a href="https://www.instagram.com/vozes.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-700 transition-colors flex items-center gap-1.5 font-bold">
             <Instagram size={14} className="text-pink-600" /> <span className="hidden sm:inline">Instagram</span>
           </a>
           <span className="text-afro-brown/20 select-none">|</span>
@@ -94,7 +94,7 @@ const Footer = () => (
           <Youtube size={16} /> YouTube
         </a>
         <span className="text-paper/20">|</span>
-        <a href="https://www.instagram.com/vozesdaancestralidade.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition-colors flex items-center gap-1.5">
+        <a href="https://www.instagram.com/vozes.fred/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition-colors flex items-center gap-1.5">
           <Instagram size={16} /> Instagram
         </a>
       </div>
